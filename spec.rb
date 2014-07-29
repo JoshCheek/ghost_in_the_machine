@@ -6,6 +6,7 @@ class ToQuoteMitch…ThisPlaceIsHaunted
   class FakeMech
     attr_reader :agent
 
+    # idk, might not need this
     def initialize
       @agent = GhostInTheMachine.new('Mechanize', Mock::PoltergeistDriver.new)
     end
@@ -19,8 +20,11 @@ end
 
 module PortalIntoAnotherWorld
   def setup
+    # ToQuoteMitch…ThisPlaceIsHaunted::FakeMech.new
     super # calls Mechanize::TestCase#setup
-    @mech = ToQuoteMitch…ThisPlaceIsHaunted::FakeMech.new
+
+    ghost = GhostInTheMachine.new('Mechanize', ToQuoteMitch…ThisPlaceIsHaunted::Mock::PoltergeistDriver.new)
+    @mech.instance_variable_set(:@agent, ghost)
   end
 end
 
