@@ -32,7 +32,10 @@ $LOAD_PATH << test_path
 require 'test_mechanize_http_agent'
 
 # Inject ourselves so we can run their tests against ours
-TestMechanizeHttpAgent.__send__ :include, PortalIntoAnotherWorld
+class TestMechanizeHttpAgent
+  include PortalIntoAnotherWorld
+  i_suck_and_my_tests_are_order_dependent!
+end
 
 
 # I'm failing 141 tests to start out with, want an RSpec style --fail-fast,
@@ -57,8 +60,31 @@ module Minitest
     def record(result)
       @summary_reporter.record result
       return unless result.failures.any?
+      def result.to_s
+        failures.map { |failure|
+          "#{failure.result_label}:\n\e[32m#{self.location}:\n\e[36m#{failure.message}\e[0m\n"
+        }.join "\n"
+      end
       @summary_reporter.report
       exit!
+    end
+  end
+
+  class UnexpectedError
+    # Just colouring shit in a way that will hopefully make it less tiring to get through some of this
+    # ...or maybe just wasting time b/c I'm scared to start, idk
+    def message
+      bt = Minitest.filter_backtrace(self.backtrace)
+                   .tap { |filtered|
+                     filtered.select { |line| line =~ /test_mechanize_http_agent.rb/ }
+                             .max_by { |line| line[/(?<=:)\d+/].to_i }
+                             .tap { |maybe_relevant_line|
+                               maybe_relevant_line.sub! '/test/', "/\e[35mtest/"
+                               maybe_relevant_line.sub! /:\d+/, "\\1\e[0m"
+                             }
+                   }
+                   .join("\n    ")
+      "\e[33m#{self.exception.class}\e[0m: \e[31m#{self.exception.message}\e[0m\n    #{bt}"
     end
   end
 end
