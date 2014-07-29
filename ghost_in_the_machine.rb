@@ -1,25 +1,23 @@
+require 'mechanize'
 class GhostInTheMachine
-  class EverythingIsFine
-    def initialize(description, attributes)
-      @description = description
-      @attributes = attributes
-    end
+  Agent = Mechanize::HTTP::Agent
 
-    def inspect
-      "#<EverythingIsFine(#{@description}) #{@attributes.keys.inspect}>"
-    end
-
-    def name
-      @attributes.fetch :name
+  def self.fuck(method_name)
+    define_method method_name do |*args, &block|
+      real_agent.__send__ method_name, *args, &block
     end
   end
+
+  attr_accessor :real_agent  # let it do jobs we don't care about
+  fuck :http                 # https://github.com/sparklemotion/mechanize/blob/c3c3b6ef217e38b373d19608210c92f92803b54a/test/test_mechanize_http_agent.rb#L35
+  fuck :auto_io              # https://github.com/sparklemotion/mechanize/blob/c3c3b6ef217e38b373d19608210c92f92803b54a/lib/mechanize/http/agent.rb#L1136
 
   attr_accessor :context     # the Mechanize instance https://github.com/sparklemotion/mechanize/blob/c3c3b6ef217e38b373d19608210c92f92803b54a/lib/mechanize.rb#L190
   attr_accessor :user_agent  # https://github.com/sparklemotion/mechanize/blob/c3c3b6ef217e38b373d19608210c92f92803b54a/lib/mechanize.rb#L194
   attr_accessor :max_history # https://github.com/sparklemotion/mechanize/blob/c3c3b6ef217e38b373d19608210c92f92803b54a/lib/mechanize.rb#L215
-  attr_accessor :http        # https://github.com/sparklemotion/mechanize/blob/c3c3b6ef217e38b373d19608210c92f92803b54a/test/test_mechanize_http_agent.rb#L35
+
   def initialize(name='mechanize', driver=init_poltergeist)
-    @http = EverythingIsFine.new('Fake HTTP', name: name)
+    self.real_agent = Agent.new name
   end
 
   def init_poltergeist

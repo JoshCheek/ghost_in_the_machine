@@ -38,8 +38,10 @@ class TestMechanizeHttpAgent
 end
 
 # Some tests talk directly to Agent
+agent_class = Mechanize::HTTP::Agent
 Mechanize::HTTP.send :remove_const, :Agent
 Mechanize::HTTP::Agent = GhostInTheMachine
+GhostInTheMachine::Agent = agent_class
 
 # I'm failing 141 tests to start out with, want an RSpec style --fail-fast,
 # since the reporter gets notified after each test run,
@@ -82,8 +84,9 @@ module Minitest
                      filtered.select { |line| line =~ /test_mechanize_http_agent.rb/ }
                              .max_by { |line| line[/(?<=:)\d+/].to_i }
                              .tap { |maybe_relevant_line|
+                               next unless maybe_relevant_line
                                maybe_relevant_line.sub! '/test/', "/\e[35mtest/"
-                               maybe_relevant_line.sub! /:\d+/, "\\1\e[0m"
+                               maybe_relevant_line.sub! /(:\d+)/, "\\1\e[0m"
                              }
                    }
                    .join("\n    ")
