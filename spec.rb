@@ -7,7 +7,7 @@ class ToQuoteMitch…ThisPlaceIsHaunted
     attr_reader :agent
 
     def initialize
-      @agent = GhostInTheMachine.new(Mock::PoltergeistDriver.new)
+      @agent = GhostInTheMachine.new('Mechanize', Mock::PoltergeistDriver.new)
     end
   end
 
@@ -37,6 +37,9 @@ class TestMechanizeHttpAgent
   i_suck_and_my_tests_are_order_dependent!
 end
 
+# Some tests talk directly to Agent
+Mechanize::HTTP.send :remove_const, :Agent
+Mechanize::HTTP::Agent = GhostInTheMachine
 
 # I'm failing 141 tests to start out with, want an RSpec style --fail-fast,
 # since the reporter gets notified after each test run,
